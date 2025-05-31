@@ -15,18 +15,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.Add
 import com.example.plumtorrent.R
 import com.example.plumtorrent.models.Torrent
 import com.example.plumtorrent.models.TorrentState
 import java.util.Date
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 val beige = 0xFFE4C59E
 val beige_dim = 0xFFB2816C
 val bg_dark = 0xFF332C2A
 val plum = 0xFF803D3B
 
-fun sampleTorrents(): List<Torrent> = List(7) { i ->
+fun sampleTorrents(): List<Torrent> = List(15) { i ->
     Torrent(
         hash = "hash$i",
         name = "Sample Torrent $i",
@@ -60,6 +63,13 @@ fun HomeScreen() {
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("ALL", "QUEUED", "FINISHED")
     val torrents = remember { sampleTorrents() }
+
+    val listState = rememberLazyListState()
+    val isScrolled by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
+        }
+    }
 
     Scaffold(
         containerColor = Color(bg_dark),
@@ -108,7 +118,7 @@ fun HomeScreen() {
                     containerColor = Color(bg_dark), // Same dark background
                     contentColor = Color(beige), // Orange for selected
                     indicator = { tabPositions ->
-                        TabRowDefaults.Indicator(
+                        TabRowDefaults.SecondaryIndicator(
                             Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
                             color = Color(beige) // Orange indicator
                         )
@@ -132,20 +142,37 @@ fun HomeScreen() {
                     }
                 }
             }
+        },
+        floatingActionButton = {
+            Box(
+                modifier = Modifier
+                    .padding(
+                        bottom = 64.dp,
+                        end = 16.dp
+                    ),
+                contentAlignment = Alignment.BottomEnd
+            ) {
+                FAB(isScrolled)
+            }
         }
     ) { paddingValues ->
         // Your content based on selected tab
         when (selectedTab) {
-            0 -> TorrentsListContent(torrents, Modifier.padding(paddingValues))
-            1 -> TorrentsListContent(torrents, Modifier.padding(paddingValues))
-            2 -> TorrentsListContent(torrents, Modifier.padding(paddingValues))
+            0 -> TorrentsListContent(torrents, Modifier.padding(paddingValues),listState = listState)
+            1 -> TorrentsListContent(torrents, Modifier.padding(paddingValues), listState = listState)
+            2 -> TorrentsListContent(torrents, Modifier.padding(paddingValues), listState = listState)
         }
     }
 }
 
 @Composable
-fun TorrentsListContent(torrents: List<Torrent>, modifier: Modifier = Modifier) {
+fun TorrentsListContent(
+    torrents: List<Torrent>,
+    modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState()
+) {
     LazyColumn(
+        state = listState,
         modifier = modifier
             .fillMaxSize()
             .background(Color(bg_dark))
@@ -161,4 +188,28 @@ fun TorrentsListContent(torrents: List<Torrent>, modifier: Modifier = Modifier) 
             )
         }
     }
+}
+
+@Composable
+fun FAB(isScrolled: Boolean) {
+    ExtendedFloatingActionButton(
+        onClick = { /* Handle add torrent action */ },
+        containerColor = Color(plum),
+        contentColor = Color(beige),
+        expanded = !isScrolled,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add",
+                tint = Color(beige)
+            )
+        },
+        text = {
+            Text(
+                text = "Add torrent",
+                color = Color(beige)
+            )
+        }
+
+    )
 }
