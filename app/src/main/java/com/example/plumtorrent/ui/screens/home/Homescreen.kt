@@ -1,4 +1,4 @@
-package com.example.plumtorrent.ui
+package com.example.plumtorrent.ui.screens.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.Add
 import com.example.plumtorrent.R
@@ -23,11 +24,14 @@ import com.example.plumtorrent.models.Torrent
 import com.example.plumtorrent.models.TorrentState
 import java.util.Date
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
+import com.example.plumtorrent.ui.components.TorrentCard
 
-val beige = 0xFFE4C59E
-val beige_dim = 0xFFB2816C
-val bg_dark = 0xFF332C2A
-val plum = 0xFF803D3B
+val beige = Color(0xFFE4C59E)
+val beige_dim = Color(0xFFB2816C)
+val bg_dark = Color(0xFF332C2A)
+val plum = Color(0xFF803D3B)
 
 fun sampleTorrents(): List<Torrent> = List(15) { i ->
     Torrent(
@@ -72,7 +76,7 @@ fun HomeScreen() {
     }
 
     Scaffold(
-        containerColor = Color(bg_dark),
+        containerColor = bg_dark,
         topBar = {
             Column {
                 // Main app bar
@@ -95,7 +99,7 @@ fun HomeScreen() {
                             Icon(
                                 imageVector = Icons.Default.Menu,
                                 contentDescription = "Menu",
-                                tint = Color(beige)
+                                tint = beige
                             )
                         }
                         // Three dots menu
@@ -103,24 +107,24 @@ fun HomeScreen() {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = "More options",
-                                tint = Color(beige)
+                                tint = beige
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(bg_dark) // Dark background
+                        containerColor = bg_dark // Dark background
                     )
                 )
 
                 // Tab row
                 TabRow(
                     selectedTabIndex = selectedTab,
-                    containerColor = Color(bg_dark), // Same dark background
-                    contentColor = Color(beige), // Orange for selected
+                    containerColor = bg_dark, // Same dark background
+                    contentColor = beige, // Orange for selected
                     indicator = { tabPositions ->
                         TabRowDefaults.SecondaryIndicator(
                             Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                            color = Color(beige) // Orange indicator
+                            color = beige // Orange indicator
                         )
                     }
                 ) {
@@ -132,15 +136,20 @@ fun HomeScreen() {
                                 Text(
                                     text = title,
                                     color = if (selectedTab == index) {
-                                        Color(beige) // Orange when selected
+                                        beige // Orange when selected
                                     } else {
-                                        Color(beige_dim) // Gray when not selected
+                                        beige_dim // Gray when not selected
                                     }
                                 )
                             }
                         )
                     }
                 }
+                ChipRow(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    selectedChip = "Movie/TV" // Default selected chip
+                )
             }
         },
         floatingActionButton = {
@@ -156,7 +165,6 @@ fun HomeScreen() {
             }
         }
     ) { paddingValues ->
-        // Your content based on selected tab
         when (selectedTab) {
             0 -> TorrentsListContent(torrents, Modifier.padding(paddingValues),listState = listState)
             1 -> TorrentsListContent(torrents, Modifier.padding(paddingValues), listState = listState)
@@ -175,7 +183,7 @@ fun TorrentsListContent(
         state = listState,
         modifier = modifier
             .fillMaxSize()
-            .background(Color(bg_dark))
+            .background(bg_dark)
             .padding(horizontal = 16.dp),
         contentPadding = PaddingValues(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -194,22 +202,76 @@ fun TorrentsListContent(
 fun FAB(isScrolled: Boolean) {
     ExtendedFloatingActionButton(
         onClick = { /* Handle add torrent action */ },
-        containerColor = Color(plum),
-        contentColor = Color(beige),
+        containerColor = plum,
+        contentColor = beige,
         expanded = !isScrolled,
         icon = {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Add",
-                tint = Color(beige)
+                tint = beige
             )
         },
         text = {
             Text(
                 text = "Add torrent",
-                color = Color(beige)
+                color = beige
             )
         }
 
+    )
+}
+@Composable
+fun ChipRow(
+    modifier: Modifier = Modifier,
+    selectedChip: String = "All"
+) {
+    LazyRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(bg_dark)
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        items(listOf("Movie/TV", "PC Program", "Music", "Other")) { chipText ->
+
+            FilterChip(
+                selected = chipText == selectedChip,
+                onClick = { /* Handle chip selection */ },
+                label = {
+                    Text(
+                        text = chipText,
+                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .padding(horizontal = 1.dp, vertical = 0.dp)
+                    )
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = Color.Transparent,
+                    selectedContainerColor = Color.Transparent,
+                    labelColor = beige_dim,
+                    selectedLabelColor = beige
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    borderColor = beige_dim,
+                    selectedBorderColor = beige,
+                    borderWidth = 1.2.dp,
+                    selectedBorderWidth = 1.2.dp,
+                    enabled = true,
+                    selected = chipText == selectedChip
+                ),
+                modifier = Modifier.wrapContentWidth()
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ChipPreview() {
+    ChipRow(
+        modifier = Modifier.fillMaxWidth(),
+        selectedChip = "Movie/TV"
     )
 }

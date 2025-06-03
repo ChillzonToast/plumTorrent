@@ -1,4 +1,4 @@
-package com.example.plumtorrent.ui
+package com.example.plumtorrent.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -22,6 +21,10 @@ import androidx.compose.ui.unit.sp
 import com.example.plumtorrent.models.Torrent
 import com.example.plumtorrent.models.TorrentState
 import com.example.plumtorrent.R
+import com.example.plumtorrent.ui.screens.home.beige
+import com.example.plumtorrent.ui.screens.home.beige_dim
+import com.example.plumtorrent.ui.screens.home.bg_dark
+import com.example.plumtorrent.ui.screens.home.plum
 
 @Composable
 fun TorrentCard(
@@ -34,7 +37,7 @@ fun TorrentCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onTorrentClick(torrent) }
-            .background(Color(bg_dark))
+            .background(bg_dark)
         ,
         shape = RoundedCornerShape(8.dp)
 
@@ -42,7 +45,7 @@ fun TorrentCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(bg_dark))
+                .background(bg_dark)
                 .padding(5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -53,10 +56,9 @@ fun TorrentCard(
                 // Torrent name
                 Text(
                     text = torrent.name,
-                    color = Color(beige),
+                    color = beige,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -68,8 +70,8 @@ fun TorrentCard(
                         .fillMaxWidth()
                         .height(3.dp)
                         .clip(RoundedCornerShape(2.dp)),
-                    color = Color(beige_dim), // Orange progress
-                    trackColor = Color(plum) // Dark track
+                    color = beige_dim, // Orange progress
+                    trackColor = plum // Dark track
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -80,27 +82,27 @@ fun TorrentCard(
                 ) {
                     Text(
                         text = "${torrent.category}",
-                        color = Color(beige_dim), // Your orange color
+                        color = beige_dim, // Your orange color
                         fontSize = 12.sp
                     )
                     Text(
                         text = " • ",
-                        color = Color(beige_dim),
+                        color = beige_dim,
                         fontSize = 12.sp
                     )
                     Text(
                         text = getStatusText(torrent.state),
-                        color = Color(beige_dim), // Your orange color
+                        color = beige_dim, // Your orange color
                         fontSize = 12.sp
                     )
                     Text(
                         text = " • ",
-                        color = Color(beige_dim),
+                        color = beige_dim,
                         fontSize = 12.sp
                     )
                     Text(
                         text = "${String.format("%.1f", torrent.progress * 100)}%",
-                        color = Color(beige_dim),
+                        color = beige_dim,
                         fontSize = 12.sp
                     )
                 }
@@ -109,18 +111,19 @@ fun TorrentCard(
                 Row {
                     Text(
                         text = "${formatBytes(torrent.downloadedBytes)} / ${formatBytes(torrent.size)}",
-                        color = Color(beige_dim),
+                        color = beige_dim,
                         fontSize = 12.sp
                     )
                     Text(
                         text = " • ",
-                        color = Color(beige_dim),
+                        color = beige_dim,
                         fontSize = 12.sp
                     )
                     Text(
                         text = buildSpeedText(torrent),
-                        color = Color(beige),
-                        fontSize = 12.sp
+                        color = beige,
+                        fontSize = 12.sp,
+                        maxLines = 1
                     )
                 }
             }
@@ -134,11 +137,11 @@ fun TorrentCard(
                     .size(48.dp)
                     .then(
                         if (torrent.state != TorrentState.PAUSED)
-                            Modifier.border(3.dp, Color(beige), CircleShape)
+                            Modifier.border(3.dp, beige, CircleShape)
                         else
                             Modifier
                             .background(
-                                color = Color(plum),
+                                color = plum,
                                 shape = CircleShape
                             )
                     )
@@ -147,14 +150,14 @@ fun TorrentCard(
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = "Resume",
-                        tint = Color(beige),
+                        tint = beige,
                         modifier = Modifier.size(24.dp)
                     )
                 } else {
                     Icon(
                         painter = painterResource(id = R.drawable.pause),
                         contentDescription = "Pause",
-                        tint = Color(beige),
+                        tint = beige,
                         modifier = Modifier.size(24.dp)
                     )
                 }
