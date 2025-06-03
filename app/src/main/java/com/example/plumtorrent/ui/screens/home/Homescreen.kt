@@ -211,7 +211,13 @@ fun ChipRow(
 
             FilterChip(
                 selected = chipText == selectedChip,
-                onClick = { viewModel.setCategory(chipText) },
+                onClick = {
+                    if (chipText == selectedChip) {
+                        viewModel.setCategory(null) // Deselect if already selected
+                    } else {
+                        viewModel.setCategory(chipText) // Set selected category
+                    }
+                },
                 label = {
                     Text(
                         text = chipText,
