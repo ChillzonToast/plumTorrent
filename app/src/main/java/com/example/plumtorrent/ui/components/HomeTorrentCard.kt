@@ -29,9 +29,9 @@ import com.example.plumtorrent.ui.screens.home.plum
 @Composable
 fun TorrentCard(
     torrent: Torrent,
+    modifier: Modifier = Modifier,
     onTorrentClick: (Torrent) -> Unit = {},
-    onPlayPauseClick: (Torrent) -> Unit = {},
-    modifier: Modifier = Modifier
+    onPlayPauseClick: (Torrent) -> Unit = {}
 ) {
     Card(
         modifier = modifier
@@ -134,7 +134,7 @@ fun TorrentCard(
             IconButton(
                 onClick = { onPlayPauseClick(torrent) },
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(58.dp)
                     .then(
                         if (torrent.state != TorrentState.PAUSED)
                             Modifier.border(3.dp, beige, CircleShape)
@@ -151,14 +151,14 @@ fun TorrentCard(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = "Resume",
                         tint = beige,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(32.dp)
                     )
                 } else {
                     Icon(
                         painter = painterResource(id = R.drawable.pause),
                         contentDescription = "Pause",
                         tint = beige,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(32.dp)
                     )
                 }
             }

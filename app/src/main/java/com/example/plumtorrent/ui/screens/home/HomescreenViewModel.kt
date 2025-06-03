@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import com.example.plumtorrent.models.Torrent
 import com.example.plumtorrent.data.repositories.listTorrents
 import com.example.plumtorrent.models.TorrentState
+import java.util.Date
 
 class HomeScreenViewModel : ViewModel() {
     private val _torrents = MutableStateFlow(listTorrents())
@@ -17,23 +18,44 @@ class HomeScreenViewModel : ViewModel() {
     private val _homeTab = MutableStateFlow<Int>(0)
     val homeTab: StateFlow<Int> = _homeTab
 
-    fun getTorrents(): List<Torrent> {
-        if (homeTab.value == 0) {
-            return torrents.value.filter { torrent ->
+    fun getTorrents(
+        sort: String = "id",
+        sortDirection: String = "asc"
+    ): List<Torrent> {
+
+        val filteredTorrents = when (homeTab.value) {
+            0 -> torrents.value.filter { torrent ->
                 (category.value == null || torrent.category == category.value)
             }
-        } else if (homeTab.value == 1) {
-            return torrents.value.filter { torrent ->
+            1 -> torrents.value.filter { torrent ->
                 (category.value == null || torrent.category == category.value) &&
                         (torrent.state != TorrentState.COMPLETED)
             }
-        } else if (homeTab.value == 2) {
-            return torrents.value.filter { torrent ->
+            2 -> torrents.value.filter { torrent ->
                 (category.value == null || torrent.category == category.value) &&
                         (torrent.state == TorrentState.COMPLETED)
             }
+            else -> emptyList()
         }
-        return emptyList()
+
+        val sortedTorrents = when (sort) {
+            "id" -> filteredTorrents.sortedBy { it.id }
+            "name" -> filteredTorrents.sortedBy { it.name.lowercase() }
+            "dateAdded" -> filteredTorrents.sortedBy { it.dateAdded }
+            "dateCompleted" -> filteredTorrents.sortedBy { it.dateCompleted ?: Date(0) }
+            "downloadSpeed" -> filteredTorrents.sortedBy { it.downloadSpeed }
+            "uploadSpeed" -> filteredTorrents.sortedBy { it.uploadSpeed }
+            "eta" -> filteredTorrents.sortedBy { it.eta ?: Long.MAX_VALUE }
+            "size" -> filteredTorrents.sortedBy { it.size }
+            "progress" -> filteredTorrents.sortedBy { it.progress }
+            else -> filteredTorrents
+        }
+
+        return if (sortDirection == "desc") {
+            sortedTorrents.reversed()
+        } else {
+            sortedTorrents
+        }
     }
 
     fun setCategory(category: String?) {

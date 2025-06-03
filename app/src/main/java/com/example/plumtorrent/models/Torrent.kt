@@ -3,11 +3,12 @@ package com.example.plumtorrent.models
 import java.util.Date
 
 data class Torrent(
+    val id: Int, // Unique identifier for the torrent
     val hash: String,
     val name: String,
     val magnetUri: String,
     val size: Long,
-    var category: String? = null, // Optional category for organization
+    var category: String? = null,
     var downloadedBytes: Long = 0L,
     var uploadedBytes: Long = 0L,
     var downloadSpeed: Long = 0L,

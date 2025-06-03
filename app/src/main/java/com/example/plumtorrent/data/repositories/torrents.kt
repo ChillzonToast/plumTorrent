@@ -6,6 +6,7 @@ import java.util.Date
 
 fun sampleTorrents(): List<Torrent> = List(15) { i ->
     Torrent(
+        id = i + 1, // Unique ID for each torrent
         hash = "hash$i",
         name = "Sample Torrent $i",
         magnetUri = "magnet:?xt=urn:btih:hash$i",

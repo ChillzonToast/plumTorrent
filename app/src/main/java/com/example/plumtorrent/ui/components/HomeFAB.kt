@@ -28,7 +28,12 @@ import com.example.plumtorrent.ui.screens.home.bg_dark
 import com.example.plumtorrent.ui.screens.home.plum
 
 @Composable
-fun FAB(isScrolled: Boolean, isClicked: Boolean = false, onFabClick: () -> Unit) {
+fun FAB(
+    isScrolled: Boolean,
+    isClicked: Boolean = false,
+    onFabClick: () -> Unit,
+    showMagnetDialog: () -> Unit
+) {
     Column(
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -71,12 +76,14 @@ fun FAB(isScrolled: Boolean, isClicked: Boolean = false, onFabClick: () -> Unit)
             // Animated visibility for additional FABs
             AnimatedVisibility(
                 visible = isClicked,
-                enter = fadeIn(animationSpec = tween(300)) + scaleIn(animationSpec = tween(300), initialScale = 0.8f),
-                exit = fadeOut(animationSpec = tween(300)) + scaleOut(animationSpec = tween(300) , targetScale = 0.8f)
+                enter = fadeIn(animationSpec = tween(300)) + scaleIn(animationSpec = tween(300), initialScale = 0.95f),
+                exit = fadeOut(animationSpec = tween(300)) + scaleOut(animationSpec = tween(300) , targetScale = 0.95f)
             ) {
                 // Magnet link add
                 ExtendedFloatingActionButton(
-                    onClick = { /* Handle add magnet link */ },
+                    onClick = {
+                        showMagnetDialog()
+                    },
                     containerColor = beige,
                     contentColor = bg_dark,
                     expanded = true,

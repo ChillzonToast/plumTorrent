@@ -1,7 +1,6 @@
 package com.example.plumtorrent.ui.screens.home
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -14,15 +13,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import com.example.plumtorrent.R
-import com.example.plumtorrent.models.Torrent
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import com.example.plumtorrent.ui.components.TorrentCard
 import com.example.plumtorrent.ui.components.FAB
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -33,6 +29,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import com.example.plumtorrent.ui.components.MagnetLinkDialog
+import com.example.plumtorrent.ui.components.TorrentsListContent
 
 val beige = Color(0xFFE4C59E)
 val beige_dim = Color(0xFFB2816C)
@@ -48,6 +46,9 @@ fun HomeScreen(
     val tabs = listOf("ALL", "QUEUED", "FINISHED")
     var selectedTab = viewModel.homeTab.collectAsState().value
     var selectedCategory = viewModel.category.collectAsState().value
+    var showMagnetDialog by remember { mutableStateOf(false) }
+    var sortTorrentsBy by remember { mutableStateOf("id") }
+    var sortDirection by remember { mutableStateOf("asc") }
 
     var isFABClicked by remember { mutableStateOf(false) }
 
@@ -78,13 +79,16 @@ fun HomeScreen(
                     },
                     actions = {
                         // Hamburger menu
-                        IconButton(onClick = { /* Open drawer/menu */ }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.sort_icon),
-                                contentDescription = "Sort",
-                                tint = beige
-                            )
-                        }
+                        SortIconWithDropdown(
+                            onSelect = { selection ->
+                                if (sortTorrentsBy == selection) {
+                                    sortDirection = if (sortDirection == "asc") "desc" else "asc"
+                                } else {
+                                    sortTorrentsBy = selection
+                                    sortDirection = "asc" // Reset to ascending when changing sort field
+                                }
+                            }
+                        )
                         // Three dots menu
                         IconButton(onClick = { /* Show more options */ }) {
                             Icon(
@@ -142,44 +146,39 @@ fun HomeScreen(
                 modifier = Modifier
                     .padding(
                         bottom = 32.dp,
-                        end = 8.dp
                     ),
                 contentAlignment = Alignment.BottomEnd
             ) {
-                FAB(isScrolled, isFABClicked) {
-                    isFABClicked = !isFABClicked
-                }
+                FAB (isScrolled,
+                    isFABClicked,
+                    onFabClick = {
+                        isFABClicked = !isFABClicked
+                    },
+                    showMagnetDialog = { showMagnetDialog = true },
+                )
             }
         }
     ) { paddingValues ->
-        TorrentsListContent(viewModel.getTorrents(), Modifier.padding(paddingValues), listState = listState)
+        TorrentsListContent(
+            viewModel.getTorrents(
+                sort = sortTorrentsBy,
+                sortDirection = sortDirection
+            ),
+            Modifier.padding(paddingValues),
+            listState = listState
+        )
     }
+
+    MagnetLinkDialog(
+        showDialog = showMagnetDialog,
+        onDismiss = { showMagnetDialog = false },
+        onConfirm = { magnetLink ->
+//            viewModel.addMagnetLink(magnetLink)
+            showMagnetDialog = false
+        }
+    )
 }
 
-@Composable
-fun TorrentsListContent(
-    torrents: List<Torrent>,
-    modifier: Modifier = Modifier,
-    listState: LazyListState = rememberLazyListState()
-) {
-    LazyColumn(
-        state = listState,
-        modifier = modifier
-            .fillMaxSize()
-            .background(bg_dark)
-            .padding(horizontal = 16.dp),
-        contentPadding = PaddingValues(vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(torrents) { torrent ->
-            TorrentCard(
-                torrent = torrent,
-                onTorrentClick = { /* Navigate to details */ },
-                onPlayPauseClick = { /* Handle play/pause */ }
-            )
-        }
-    }
-}
 
 @Composable
 fun ChipRow(
@@ -234,9 +233,82 @@ fun ChipRow(
     }
 }
 
+@Composable
+fun SortIconWithDropdown(
+    onSelect: (String) -> Unit = {}
+    ) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                painter = painterResource(id = R.drawable.sort_icon),
+                contentDescription = "Sort",
+                tint = beige
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            containerColor = bg_dark,
+        ) {
+            DropdownMenuItem(
+                text = { Text("Queue Number", color = beige) },
+                onClick = {
+                    onSelect("id")
+                    expanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Name", color = beige) },
+                onClick = {
+                    onSelect("name")
+                    expanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Date added", color = beige) },
+                onClick = {
+                    onSelect("dateAdded")
+                    expanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Date finished", color = beige) },
+                onClick = {
+                    onSelect("dateCompleted")
+                    expanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Download speed", color = beige) },
+                onClick = {
+                    onSelect("downloadSpeed")
+                    expanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Upload speed", color = beige) },
+                onClick = {
+                    onSelect("uploadSpeed")
+                    expanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("ETA", color = beige) },
+                onClick = {
+                    onSelect("eta")
+                    expanded = false
+                }
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 fun Preview() {
-    FAB(false,true) {}
+    FAB(false,true,{},{})
 }
 
