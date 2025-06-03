@@ -7,7 +7,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.ui.Alignment
@@ -18,15 +17,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.filled.Add
 import com.example.plumtorrent.R
 import com.example.plumtorrent.models.Torrent
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import com.example.plumtorrent.ui.components.TorrentCard
+import com.example.plumtorrent.ui.components.FAB
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 
 val beige = Color(0xFFE4C59E)
 val beige_dim = Color(0xFFB2816C)
@@ -42,6 +48,8 @@ fun HomeScreen(
     val tabs = listOf("ALL", "QUEUED", "FINISHED")
     var selectedTab = viewModel.homeTab.collectAsState().value
     var selectedCategory = viewModel.category.collectAsState().value
+
+    var isFABClicked by remember { mutableStateOf(false) }
 
     val listState = rememberLazyListState()
     val isScrolled by remember {
@@ -72,8 +80,8 @@ fun HomeScreen(
                         // Hamburger menu
                         IconButton(onClick = { /* Open drawer/menu */ }) {
                             Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu",
+                                painter = painterResource(id = R.drawable.sort_icon),
+                                contentDescription = "Sort",
                                 tint = beige
                             )
                         }
@@ -133,12 +141,14 @@ fun HomeScreen(
             Box(
                 modifier = Modifier
                     .padding(
-                        bottom = 48.dp,
-                        end = 16.dp
+                        bottom = 32.dp,
+                        end = 8.dp
                     ),
                 contentAlignment = Alignment.BottomEnd
             ) {
-                FAB(isScrolled)
+                FAB(isScrolled, isFABClicked) {
+                    isFABClicked = !isFABClicked
+                }
             }
         }
     ) { paddingValues ->
@@ -171,29 +181,6 @@ fun TorrentsListContent(
     }
 }
 
-@Composable
-fun FAB(isScrolled: Boolean) {
-    ExtendedFloatingActionButton(
-        onClick = { /* Handle add torrent action */ },
-        containerColor = plum,
-        contentColor = beige,
-        expanded = !isScrolled,
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Add",
-                tint = beige
-            )
-        },
-        text = {
-            Text(
-                text = "Add torrent",
-                color = beige
-            )
-        }
-
-    )
-}
 @Composable
 fun ChipRow(
     modifier: Modifier = Modifier,
@@ -249,9 +236,7 @@ fun ChipRow(
 
 @Preview
 @Composable
-fun ChipPreview() {
-    ChipRow(
-        modifier = Modifier.fillMaxWidth(),
-        selectedChip = "Movie/TV"
-    )
+fun Preview() {
+    FAB(false,true) {}
 }
+
