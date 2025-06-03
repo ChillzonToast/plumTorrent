@@ -21,52 +21,27 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.Add
 import com.example.plumtorrent.R
 import com.example.plumtorrent.models.Torrent
-import com.example.plumtorrent.models.TorrentState
-import java.util.Date
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import com.example.plumtorrent.ui.components.TorrentCard
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 val beige = Color(0xFFE4C59E)
 val beige_dim = Color(0xFFB2816C)
 val bg_dark = Color(0xFF332C2A)
 val plum = Color(0xFF803D3B)
 
-fun sampleTorrents(): List<Torrent> = List(15) { i ->
-    Torrent(
-        hash = "hash$i",
-        name = "Sample Torrent $i",
-        magnetUri = "magnet:?xt=urn:btih:hash$i",
-        size = 1024L * 1024 * (i + 1),
-        category = "Movie/TV",
-        downloadedBytes = 512L * 1024 * (i + 1),
-        uploadedBytes = 128L * 1024 * (i + 1),
-        downloadSpeed = 100L * (i + 1),
-        uploadSpeed = 50L * (i + 1),
-        state = TorrentState.PAUSED,
-        progress = (i + 1) / 7f,
-        eta = 1000L * (7 - i),
-        seeders = i,
-        leechers = 7 - i,
-        peers = emptyList(),
-        ratio = 0.5f * (i + 1),
-        dateAdded = Date(),
-        dateCompleted = null,
-        downloadPath = "/downloads/sample$i",
-        files = emptyList(),
-        isPrivate = false,
-        comment = "Sample comment $i",
-        creator = "Creator $i"
-    )
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
-    var selectedTab by remember { mutableIntStateOf(0) }
+fun HomeScreen(
+    viewModel: HomeScreenViewModel = viewModel()
+) {
     val tabs = listOf("ALL", "QUEUED", "FINISHED")
-    val torrents = remember { sampleTorrents() }
+    var selectedTab = viewModel.homeTab.collectAsState().value
+    var selectedCategory = viewModel.category.collectAsState().value
 
     val listState = rememberLazyListState()
     val isScrolled by remember {
@@ -131,7 +106,7 @@ fun HomeScreen() {
                     tabs.forEachIndexed { index, title ->
                         Tab(
                             selected = selectedTab == index,
-                            onClick = { selectedTab = index },
+                            onClick = { viewModel.selectTab(index) },
                             text = {
                                 Text(
                                     text = title,
@@ -145,10 +120,12 @@ fun HomeScreen() {
                         )
                     }
                 }
+
                 ChipRow(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    selectedChip = "Movie/TV" // Default selected chip
+                    viewModel = viewModel,
+                    selectedChip = selectedCategory
                 )
             }
         },
@@ -156,7 +133,7 @@ fun HomeScreen() {
             Box(
                 modifier = Modifier
                     .padding(
-                        bottom = 64.dp,
+                        bottom = 48.dp,
                         end = 16.dp
                     ),
                 contentAlignment = Alignment.BottomEnd
@@ -165,11 +142,7 @@ fun HomeScreen() {
             }
         }
     ) { paddingValues ->
-        when (selectedTab) {
-            0 -> TorrentsListContent(torrents, Modifier.padding(paddingValues),listState = listState)
-            1 -> TorrentsListContent(torrents, Modifier.padding(paddingValues), listState = listState)
-            2 -> TorrentsListContent(torrents, Modifier.padding(paddingValues), listState = listState)
-        }
+        TorrentsListContent(viewModel.getTorrents(), Modifier.padding(paddingValues), listState = listState)
     }
 }
 
@@ -224,7 +197,8 @@ fun FAB(isScrolled: Boolean) {
 @Composable
 fun ChipRow(
     modifier: Modifier = Modifier,
-    selectedChip: String = "All"
+    selectedChip: String? = null,
+    viewModel: HomeScreenViewModel = viewModel()
 ) {
     LazyRow(
         modifier = modifier
@@ -237,7 +211,7 @@ fun ChipRow(
 
             FilterChip(
                 selected = chipText == selectedChip,
-                onClick = { /* Handle chip selection */ },
+                onClick = { viewModel.setCategory(chipText) },
                 label = {
                     Text(
                         text = chipText,
