@@ -4,6 +4,7 @@ package com.example.plumtorrent.ui.screens.addtorrent
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -359,26 +360,25 @@ fun OptionsTab(
 
 @Composable
 fun FilesTab() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Files content will be displayed here",
-            color = beige_dim
-        )
-    }
+    TorrentFileList()
 }
 
 @Composable
 fun TrackersTab() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
+    var trackers by remember { mutableStateOf(listOf("udp://tracker.example.com:80/announce", "http://tracker2.example.com/announce", "http://tracker3.example.com:80/announce")) }
+
+    for (tracker in trackers) {
+        Spacer(modifier = Modifier.height(24.dp))
+
         Text(
-            text = "Trackers content will be displayed here",
-            color = beige_dim
+            text = tracker,
+            color = beige,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal,
+            letterSpacing = 0.1.sp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
         )
     }
 }
@@ -461,7 +461,86 @@ fun CategoryIconWithDropdown(
         }
     }
 }
+@Composable
+private fun TorrentFileList(
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .background(bg_dark),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(3) { index ->
+            TorrentFileItem(
+                fileName = "When.Life.Gives.You.Tangerines.S01E0${index+1}.1080p.ENG.ITA.KOR.H264.mkv",
+                fileSize = "${2.31 * (index+1)} GB",
+                isSelected = index < 2
+            )
+        }
+    }
+}
 
+@Composable
+private fun TorrentFileItem(
+    fileName: String,
+    fileSize: String,
+    isSelected: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        // File icon
+        Icon(
+            painter = painterResource(id = R.drawable.file_icon),
+            contentDescription = null,
+            modifier = Modifier
+                .size(20.dp)
+                .offset(y = 2.dp),
+            tint = beige
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // File info
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = fileName,
+                color = beige,
+                style = MaterialTheme.typography.bodyMedium,
+                lineHeight = 18.sp
+            )
+
+            Text(
+                text = fileSize,
+                color = beige_dim,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // Checkbox
+        Checkbox(
+            checked = isSelected,
+            onCheckedChange = { },
+            colors = CheckboxDefaults.colors(
+                checkedColor = beige_dim,
+                uncheckedColor = beige_dim,
+                checkmarkColor = bg_dark
+            ),
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
 @Preview(showBackground = true)
 @Composable
 fun AddTorrentScreenPreview() {

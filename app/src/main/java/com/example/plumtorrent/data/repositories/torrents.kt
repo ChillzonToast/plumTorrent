@@ -29,7 +29,8 @@ fun sampleTorrents(): List<Torrent> = List(15) { i ->
         files = emptyList(),
         isPrivate = false,
         comment = "Sample comment $i",
-        creator = "Creator $i"
+        creator = "Creator $i",
+        trackers = listOf("udp://tracker.example.com:80/announce", "http://tracker2.example.com/announce")
     )
 }
 

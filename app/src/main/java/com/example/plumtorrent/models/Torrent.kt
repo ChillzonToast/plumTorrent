@@ -26,7 +26,8 @@ data class Torrent(
     var files: List<TorrentFile> = emptyList(),
     val isPrivate: Boolean = false,
     var comment: String = "",
-    var creator: String = ""
+    var creator: String = "",
+    var trackers: List<String> = emptyList(),
 )
 
 enum class TorrentState {
@@ -38,14 +39,19 @@ enum class TorrentState {
     COMPLETED         // Download finished
 }
 
-// TorrentFile.kt
+// Data classes
 data class TorrentFile(
-    val name: String,               // File name
-    val path: String,               // Full path within torrent
-    val size: Long,                 // File size in bytes
-    var downloadedBytes: Long = 0L, // How much of this file downloaded
-    var isComplete: Boolean = false // Completion status can change
+    val name: String,
+    val size: String,
+    val type: FileType,
+    val isSelected: Boolean = false,
+    val isFolder: Boolean = false,
+    val children: List<TorrentFile> = emptyList()
 )
+
+enum class FileType {
+    VIDEO, AUDIO, DOCUMENT, IMAGE, ARCHIVE, FOLDER, UNKNOWN
+}
 
 // Peer.kt
 data class Peer(
