@@ -586,6 +586,7 @@ private fun TorrentFileList(
             TorrentFileItem(
                 fileName = "When.Life.Gives.You.Tangerines.S01E0${index+1}.1080p.ENG.ITA.KOR.H264.mkv",
                 fileSize = "${2.31 * (index+1)} GB",
+                streamStatus = "Ready to stream",
                 isSelected = index < 2
             )
         }
@@ -597,6 +598,7 @@ private fun TorrentFileItem(
     fileName: String,
     fileSize: String,
     isSelected: Boolean,
+    streamStatus: String = "Ready to stream",
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -627,13 +629,21 @@ private fun TorrentFileItem(
                 style = MaterialTheme.typography.bodyMedium,
                 lineHeight = 18.sp
             )
+            Row {
+                Text(
+                    text = fileSize + " • ",
+                    color = beige_dim,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+                Text(
+                    text = streamStatus,
+                    color = beige,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
 
-            Text(
-                text = fileSize,
-                color = beige_dim,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 2.dp)
-            )
         }
 
         Spacer(modifier = Modifier.width(12.dp))
