@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -48,6 +50,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineBreak
@@ -400,7 +403,8 @@ fun StatusTab(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         // Title and Status
@@ -745,13 +749,77 @@ fun PeersTab(modifier: Modifier = Modifier) {
 @Composable
 fun PiecesTab(modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        modifier = modifier
+            .fillMaxWidth(),
+        contentAlignment = Alignment.TopStart
     ) {
-        Text(
-            text = "PiecesTab",
-            color = beige
-        )
+        Column (
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            InfoRow(
+                label = "PIECES",
+                value = "3082/6,208",
+                secondaryLabel = "PIECE SIZE",
+                secondaryValue = "8.0 MB"
+            )
+            Text(
+                text = "FILES",
+                style = MaterialTheme.typography.titleMedium,
+                color = beige
+            )
+            FilesPiecesList()
+
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun FilesPiecesList(
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(bg_dark),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+         items(10) { index ->
+            Column {
+                Text(
+                    text = "When.Life.Gives.You.Tangerines.S01E0${index+1}.1080p.ENG.ITA.KOR.H264.mkv",
+                    color = beige,
+                    fontSize = 14.sp
+                )
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    repeat(23) { index ->
+                        Box(
+                            modifier = Modifier
+                                .size(15.dp)
+                                .background(beige)
+                        )
+                    }
+                    repeat(12) { index ->
+                        Box(
+                            modifier = Modifier
+                                .alpha(0.2f)
+                                .size(15.dp)
+                                .background(beige)
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -766,7 +834,7 @@ private fun TorrentFileList(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(3) { index ->
+        items(12) { index ->
             TorrentFileItem(
                 fileName = "When.Life.Gives.You.Tangerines.S01E0${index+1}.1080p.ENG.ITA.KOR.H264.mkv",
                 fileSize = "${2.31 * (index+1)} GB",
