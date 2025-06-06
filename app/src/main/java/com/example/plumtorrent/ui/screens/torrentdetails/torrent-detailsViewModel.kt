@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class TorrentDetailsViewModel : ViewModel() {
-    private val _selectedTab = MutableStateFlow<Int>(2)
+    private val _selectedTab = MutableStateFlow<Int>(1)
     val selectedTab: StateFlow<Int> = _selectedTab
 
     fun selectTab(index: Int) {

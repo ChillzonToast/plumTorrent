@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -48,6 +49,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -394,14 +397,195 @@ fun OptionsTab(
 }
 @Composable
 fun StatusTab(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        Text(
-            text = "StatusTab",
-            color = beige
+        // Title and Status
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                text = "Scott Pilgrim vs the World (2017) [YTS.MX]",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    lineBreak = LineBreak.Simple
+                ),
+                color = beige
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Paused",
+                style = MaterialTheme.typography.bodyLarge,
+                color = beige
+            )
+            Text(
+                text = "83%",
+                style = MaterialTheme.typography.bodyLarge,
+                color = beige
+            )
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Custom Progress Bar
+        SegmentedProgressBar(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(20.dp)
         )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Download/Upload Speed
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "0.0 KB/s ↓",
+                style = MaterialTheme.typography.bodyMedium,
+                color = beige
+            )
+            Text(
+                text = "0.0 KB/s ↑",
+                style = MaterialTheme.typography.bodyMedium,
+                color = beige
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(32.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 20.dp)
+        ){
+            // Download Progress
+            InfoRow(
+                label = "DOWNLOADED",
+                value = "0.0 KB/48.5 GB",
+                secondaryLabel = "ETA",
+                secondaryValue = "∞"
+            )
+
+
+            // Peers
+            InfoRow(
+                label = "LEECHERS",
+                value = "0",
+                secondaryLabel = "SEEDERS",
+                secondaryValue = "0"
+            )
+
+            // Upload Stats
+            InfoRow(
+                label = "UPLOADED",
+                value = "8.5 GB",
+                secondaryLabel = "SHARE RATIO",
+                secondaryValue = "0.195"
+            )
+
+            // Time Stats
+            InfoRow(
+                label = "ACTIVE TIME",
+                value = "6h 41m",
+                secondaryLabel = "SEEDING TIME",
+                secondaryValue = "43m 41s"
+            )
+
+            // Availability and Pieces
+            InfoRow(
+                label = "AVAILABILITY",
+                value = "0.00",
+                secondaryLabel = "PIECES",
+                secondaryValue = "3082/6,208 (8.0 MB)"
+            )
+        }
+    }
+}
+
+@Composable
+fun InfoRow(
+    label: String,
+    value: String,
+    secondaryLabel: String,
+    secondaryValue: String,
+    modifier: Modifier = Modifier
+) {
+    Column (
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.padding(bottom = 4.dp)
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = beige
+                )
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = beige
+                )
+            }
+
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = secondaryLabel,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = beige
+                )
+                Text(
+                    text = secondaryValue,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = beige
+                )
+            }
+
+        }
+
+        HorizontalDiv()
+    }
+}
+
+@Composable
+fun SegmentedProgressBar(
+    modifier: Modifier = Modifier,
+    segments: Int = 50
+) {
+
+    Row(
+        modifier = modifier
+    ) {
+        repeat(segments) { index ->
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .background(
+                        color = when {
+                            (10 <= index + 1 && index + 1 <= 17) || (23 <= index + 1 && index + 1 <= 28) -> plum
+                            else -> beige
+                        }
+                    )
+            )
+        }
     }
 }
 @Composable
