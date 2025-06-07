@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -28,14 +29,20 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Switch
@@ -44,10 +51,15 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -58,6 +70,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.plumtorrent.R
 import com.example.plumtorrent.ui.screens.addtorrent.CategoryIconWithDropdown
@@ -95,7 +109,7 @@ fun TorrentDetailsScreen(
                     navigationIcon = {
                         IconButton(onClick = { /* Handle back navigation */ }) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack, // Your back icon
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
                                 tint = beige
                             )
@@ -106,39 +120,33 @@ fun TorrentDetailsScreen(
                         IconButton(onClick = { /* Start torrent */ }) {
                             Icon(
                                 imageVector = Icons.Default.PlayArrow,
-                                contentDescription = "More options",
+                                contentDescription = "Start torrent",
                                 tint = beige_dim
                             )
                         }//Force reannounce
-                        IconButton(onClick = { /* Force reannounce */ }) {
+                        IconButton(onClick = { viewModel.toggleRecheckDialog() }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.repeat_icon),
-                                contentDescription = "More options",
+                                contentDescription = "Force reannounce",
                                 tint = beige_dim
                             )
                         }
                         // Three dots menu
-                        IconButton(onClick = { /* Show more options */ }) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = "More options",
-                                tint = beige_dim
-                            )
-                        }
+                        TOrrentDetailsMenu(viewModel = viewModel)
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = bg_dark // Dark background
+                        containerColor = bg_dark
                     )
                 )
                 // Tab row
                 ScrollableTabRow(
                     selectedTabIndex = selectedTab,
-                    containerColor = bg_dark, // Same dark background
-                    contentColor = beige, // Orange for selected
+                    containerColor = bg_dark,
+                    contentColor = beige,
                     indicator = { tabPositions ->
                         TabRowDefaults.SecondaryIndicator(
                             Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                            color = beige // Orange indicator
+                            color = beige
                         )
                     },
                     edgePadding = 0.dp
@@ -151,9 +159,9 @@ fun TorrentDetailsScreen(
                                 Text(
                                     text = title,
                                     color = if (selectedTab == index) {
-                                        beige // Orange when selected
+                                        beige
                                     } else {
-                                        beige_dim // Gray when not selected
+                                        beige_dim
                                     }
                                 )
                             }
@@ -169,12 +177,44 @@ fun TorrentDetailsScreen(
             0 -> OptionsTab(Modifier.padding(paddingValues))
             1 -> StatusTab(Modifier.padding(paddingValues))
             2 -> FilesTab(Modifier.padding(paddingValues))
-            3 -> TrackersTab(Modifier.padding(paddingValues))
-            4 -> PeersTab(Modifier.padding(paddingValues))
+            3 -> TrackersTab(Modifier.padding(paddingValues),viewModel)
+            4 -> PeersTab(Modifier.padding(paddingValues),viewModel)
             5 -> PiecesTab(Modifier.padding(paddingValues))
         }
     }
-
+    ForceRecheckDialog(
+        showDialog = viewModel.recheckDialogVisible.collectAsState().value, 
+        onDismiss = { viewModel.toggleRecheckDialog() },
+        onConfirm = { viewModel.recheckTorrent() }
+    )
+    AddTrackersDialog(
+        showDialog = viewModel.addTrackersDialogVisible.collectAsState().value, 
+        onDismiss = { viewModel.toggleAddTrackersDialog() },
+        onConfirm = { trackers ->
+            viewModel.addTrackers(trackers)
+        }
+    )
+    AddPeersDialog(
+        showDialog = viewModel.addPeersDialogVisible.collectAsState().value, 
+        onDismiss = { viewModel.toggleAddPeersDialog() },
+        onConfirm = { trackers ->
+            viewModel.addPeers(trackers)
+        }
+    )
+    TorrentSettingsDialogue(
+        showDialog = viewModel.torrentSettingsDialogVisible.collectAsState().value, 
+        viewModel = viewModel,
+        onDismiss = { viewModel.toggleTorrentSettingsDialog() }
+    )
+    MaxSpeedDialogue(
+        showDialog = viewModel.maxSpeedDialogVisible.collectAsState().value,
+        onDismiss = {viewModel.toggleMaxSpeedDialog(null)},
+        isUpload = viewModel.maxSpeedIsUpload.collectAsState().value,
+        onConfirm = { speedInput ->
+            viewModel.setMaxSpeed(speedInput)
+            viewModel.toggleMaxSpeedDialog(null)
+        }
+    )
 }
 
 @Composable
@@ -469,7 +509,9 @@ fun StatusTab(modifier: Modifier = Modifier) {
 
         Column(
             verticalArrangement = Arrangement.spacedBy(32.dp),
-            modifier = Modifier.fillMaxWidth().padding(top = 20.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp)
         ){
             // Download Progress
             InfoRow(
@@ -603,7 +645,7 @@ fun FilesTab(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun TrackersTab(modifier: Modifier = Modifier) {
+fun TrackersTab(modifier: Modifier = Modifier,viewModel: TorrentDetailsViewModel = viewModel()) {
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.TopStart
@@ -621,7 +663,7 @@ fun TrackersTab(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                for (i in 1..7) {
+                repeat(7) {
                     ListItem(
                         headlineContent = {
                             Column {
@@ -654,7 +696,7 @@ fun TrackersTab(modifier: Modifier = Modifier) {
 
             //Add tracker button
             Button(
-                onClick = { /* Handle add tracker */ },
+                onClick = { viewModel.toggleAddTrackersDialog() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = beige,
                     contentColor = bg_dark
@@ -672,7 +714,7 @@ fun TrackersTab(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun PeersTab(modifier: Modifier = Modifier) {
+fun PeersTab(modifier: Modifier = Modifier,viewModel: TorrentDetailsViewModel = viewModel()) {
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.TopStart
@@ -687,7 +729,7 @@ fun PeersTab(modifier: Modifier = Modifier) {
         ) {
             //Add Peers button
             Button(
-                onClick = { /* Handle add tracker */ },
+                onClick = { viewModel.toggleAddPeersDialog() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = beige,
                     contentColor = bg_dark
@@ -850,8 +892,8 @@ private fun TorrentFileItem(
     fileName: String,
     fileSize: String,
     isSelected: Boolean,
-    streamStatus: String = "Ready to stream",
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    streamStatus: String = "Ready to stream"
 ) {
     Row(
         modifier = modifier
@@ -883,7 +925,7 @@ private fun TorrentFileItem(
             )
             Row {
                 Text(
-                    text = fileSize + " • ",
+                    text = "$fileSize • ",
                     color = beige_dim,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(top = 2.dp)
@@ -914,6 +956,587 @@ private fun TorrentFileItem(
     }
 }
 
+@Composable
+fun ForceRecheckDialog(
+    showDialog: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+
+    if (showDialog) {
+        Dialog(
+            onDismissRequest = onDismiss,
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
+            )
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = plum 
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    // Title
+                    Text(
+                        text = "Force recheck torrent?",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = beige,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+                    Text(
+                        text = "Partially downloaded pieces will be lost",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = beige_dim,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+
+                    // Buttons Row
+                    Row (
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Cancel Button
+                        TextButton(
+                            onClick = {
+                                onDismiss()
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = beige
+                            )
+                        ) {
+                            Text(
+                                text = "Cancel",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        // OK Button
+                        TextButton(
+                            onClick = {
+                                onConfirm()
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = beige
+                            )
+                        ) {
+                            Text(
+                                text = "OK",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AddTrackersDialog(
+    showDialog: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var trackersInput by remember { mutableStateOf("") }
+
+    if (showDialog) {
+        Dialog(
+            onDismissRequest = onDismiss,
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
+            )
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = plum
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    // Title
+                    Text(
+                        text = "Enter the trackers url..",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = beige,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+
+                    // Text Field
+                    OutlinedTextField(
+                        value = trackersInput,
+                        onValueChange = { trackersInput = it },
+                        label = {
+                            Text(
+                                "trackers",
+                                color = beige.copy(alpha = 0.7f)
+                            )
+                        },
+                        placeholder = {
+                            Text(
+                                "Use commas for multiple trackers..",
+                                color = beige.copy(alpha = 0.5f)
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 32.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = beige,
+                            unfocusedTextColor = beige,
+                            focusedBorderColor = beige,
+                            unfocusedBorderColor = beige.copy(alpha = 0.5f),
+                            cursorColor = beige
+                        ),
+                        singleLine = false,
+                        maxLines = 3
+                    )
+
+                    // Buttons Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Cancel Button
+                        TextButton(
+                            onClick = {
+                                trackersInput = ""
+                                onDismiss()
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = beige
+                            )
+                        ) {
+                            Text(
+                                text = "Cancel",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        // OK Button
+                        TextButton(
+                            onClick = {
+                                onConfirm(trackersInput)
+                                trackersInput = ""
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = beige
+                            )
+                        ) {
+                            Text(
+                                text = "OK",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+@Composable
+fun AddPeersDialog(
+    showDialog: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var peersInput by remember { mutableStateOf("") }
+
+    if (showDialog) {
+        Dialog(
+            onDismissRequest = onDismiss,
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
+            )
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = plum 
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    // Title
+                    Text(
+                        text = "Enter the peers to add",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = beige,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+
+                    // Text Field
+                    OutlinedTextField(
+                        value = peersInput,
+                        onValueChange = { peersInput = it },
+                        label = {
+                            Text(
+                                "peers",
+                                color = beige.copy(alpha = 0.7f)
+                            )
+                        },
+                        placeholder = {
+                            Text(
+                                "Use commas for multiple peers..",
+                                color = beige.copy(alpha = 0.5f)
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 32.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = beige,
+                            unfocusedTextColor = beige,
+                            focusedBorderColor = beige,
+                            unfocusedBorderColor = beige.copy(alpha = 0.5f),
+                            cursorColor = beige
+                        ),
+                        singleLine = false,
+                        maxLines = 3
+                    )
+
+                    // Buttons Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Cancel Button
+                        TextButton(
+                            onClick = {
+                                peersInput = ""
+                                onDismiss()
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = beige
+                            )
+                        ) {
+                            Text(
+                                text = "Cancel",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        // OK Button
+                        TextButton(
+                            onClick = {
+                                onConfirm(peersInput)
+                                peersInput = ""
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = beige
+                            )
+                        ) {
+                            Text(
+                                text = "OK",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+@Composable
+fun TorrentSettingsDialogue(
+    showDialog: Boolean,
+    viewModel: TorrentDetailsViewModel,
+    onDismiss: () -> Unit,
+) {
+
+    if (showDialog) {
+        Dialog(
+            onDismissRequest = onDismiss,
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
+            )
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = plum 
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    // Title
+                    Text(
+                        text = "Torrent Settings",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = beige,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+
+                    //Max Upload Speed
+                    TextButton(
+                        onClick = {
+                            viewModel.toggleMaxSpeedDialog(isUpload = true)
+                            onDismiss()
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = beige
+                        )
+                    ) {
+                        Text(
+                            text = "Max Upload Speed",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Normal
+                        )
+                    }
+                    //Max Download Speed
+                    TextButton(
+                        onClick = {
+                            viewModel.toggleMaxSpeedDialog(isUpload = false)
+                            onDismiss()
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = beige
+                        )
+                    ) {
+                        Text(
+                            text = "Max Downlaod Speed",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Normal
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+@Composable
+fun TOrrentDetailsMenu(
+    viewModel: TorrentDetailsViewModel
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "More options",
+                tint = beige_dim
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            containerColor = bg_dark,
+        ) {
+            DropdownMenuItem(
+                text = { Text("Force Reannounce", color = beige) },
+                onClick = {
+                    { /* Handle force reannounce action */ }
+                    expanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Share magnet link", color = beige) },
+                onClick = {
+                    { /* Handle share magnet link action */ }
+                    expanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Save torrent file", color = beige) },
+                onClick = {
+                    { /* Handle  action */ }
+                    expanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Remove torrent", color = beige) },
+                onClick = {
+                    { /* Handle  action */ }
+                    expanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Torrent settings", color = beige) },
+                onClick = {
+                    viewModel.toggleTorrentSettingsDialog()
+                    expanded = false
+                }
+            )
+        }
+    }
+}
+@Composable
+fun MaxSpeedDialogue(
+    showDialog: Boolean,
+    isUpload: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var speedInput by remember { mutableStateOf("") }
+
+    if (showDialog) {
+        Dialog(
+            onDismissRequest = onDismiss,
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
+            )
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = plum 
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    // Title
+                    Text(
+                        text = if (isUpload==true) {"Max Upload Speed"} else {"Max Download Speed"},
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = beige,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+
+                    // Text Field
+                    OutlinedTextField(
+                        value = speedInput,
+                        onValueChange = { speedInput = it },
+                        label = {
+                            Text(
+                                text = if (isUpload==true) {"Upload"} else {"Download"},
+                                color = beige.copy(alpha = 0.7f)
+                            )
+                        },
+                        placeholder = {
+                            Text(
+                                "Max Speed in KB/s",
+                                color = beige.copy(alpha = 0.5f)
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 32.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = beige,
+                            unfocusedTextColor = beige,
+                            focusedBorderColor = beige,
+                            unfocusedBorderColor = beige.copy(alpha = 0.5f),
+                            cursorColor = beige
+                        ),
+                        singleLine = false,
+                        maxLines = 3
+                    )
+
+                    // Buttons Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Cancel Button
+                        TextButton(
+                            onClick = {
+                                speedInput = ""
+                                onDismiss()
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = beige
+                            )
+                        ) {
+                            Text(
+                                text = "Cancel",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        // OK Button
+                        TextButton(
+                            onClick = {
+                                onConfirm(speedInput)
+                                speedInput = ""
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = beige
+                            )
+                        ) {
+                            Text(
+                                text = "OK",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 @Preview
 @Composable
 fun TorrentDetailsScreenPreview() {
