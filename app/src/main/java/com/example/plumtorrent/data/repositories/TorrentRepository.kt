@@ -3,6 +3,24 @@ package com.example.plumtorrent.data.repositories
 import com.example.plumtorrent.models.Torrent
 import com.example.plumtorrent.models.TorrentState
 import java.util.Date
+import com.example.plumtorrent.data.database.TorrentDao
+import kotlinx.coroutines.flow.Flow
+
+class TorrentRepository(private val torrentDao: TorrentDao) {
+    fun getAllTorrents(): Flow<List<Torrent>> = torrentDao.getAllTorrents()
+    suspend fun getTorrentById(id: Int): Torrent? = torrentDao.getTorrentById(id)
+    suspend fun insertTorrent(torrent: Torrent) = torrentDao.insertTorrent(torrent)
+    suspend fun updateTorrent(torrent: Torrent) = torrentDao.updateTorrent(torrent)
+    suspend fun deleteTorrent(torrent: Torrent) = torrentDao.deleteTorrent(torrent)
+    suspend fun deleteTorrentById(id: Int) = torrentDao.deleteTorrentById(id)
+
+    // Keep sample data for development/testing
+    suspend fun insertSampleData() {
+        sampleTorrents().forEach { torrent ->
+            insertTorrent(torrent)
+        }
+    }
+}
 
 fun sampleTorrents(): List<Torrent> = List(15) { i ->
     Torrent(

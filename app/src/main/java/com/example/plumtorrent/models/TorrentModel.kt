@@ -1,9 +1,17 @@
 package com.example.plumtorrent.models
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.room.TypeConverter
+import androidx.room.TypeConverters
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.util.Date
 
+@Entity(tableName = "torrents")
+@TypeConverters(Converters::class)
 data class Torrent(
-    val id: Int, // Unique identifier for the torrent
+    @PrimaryKey val id: Int, // Unique identifier for the torrent
     val hash: String,
     val name: String,
     val magnetUri: String,
@@ -43,8 +51,8 @@ enum class TorrentState {
 data class TorrentFile(
     val name: String,
     val size: String,
-    val type: FileType,
-    val isSelected: Boolean = false,
+    var type: FileType,
+    var isSelected: Boolean = false,
     val isFolder: Boolean = false,
     val children: List<TorrentFile> = emptyList()
 )
@@ -61,3 +69,43 @@ data class Peer(
     var uploadSpeed: Long,          // Changes over time
     var clientName: String? = null  // Can change if detected later
 )
+class Converters {
+    @TypeConverter
+    fun fromTorrentState(state: TorrentState): String = state.name
+
+    @TypeConverter
+    fun toTorrentState(state: String): TorrentState = TorrentState.valueOf(state)
+
+    @TypeConverter
+    fun fromDate(date: Date?): Long? = date?.time
+
+    @TypeConverter
+    fun toDate(timestamp: Long?): Date? = timestamp?.let { Date(it) }
+
+    @TypeConverter
+    fun fromStringList(value: List<String>): String = Gson().toJson(value)
+
+    @TypeConverter
+    fun toStringList(value: String): List<String> {
+        val listType = object : TypeToken<List<String>>() {}.type
+        return Gson().fromJson(value, listType)
+    }
+
+    @TypeConverter
+    fun fromPeerList(value: List<Peer>): String = Gson().toJson(value)
+
+    @TypeConverter
+    fun toPeerList(value: String): List<Peer> {
+        val listType = object : TypeToken<List<Peer>>() {}.type
+        return Gson().fromJson(value, listType)
+    }
+
+    @TypeConverter
+    fun fromTorrentFileList(value: List<TorrentFile>): String = Gson().toJson(value)
+
+    @TypeConverter
+    fun toTorrentFileList(value: String): List<TorrentFile> {
+        val listType = object : TypeToken<List<TorrentFile>>() {}.type
+        return Gson().fromJson(value, listType)
+    }
+}

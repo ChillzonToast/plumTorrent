@@ -47,8 +47,8 @@ fun HomeScreen(
     var selectedTab = viewModel.homeTab.collectAsState().value
     var selectedCategory = viewModel.category.collectAsState().value
     var showMagnetDialog by remember { mutableStateOf(false) }
-    var sortTorrentsBy by remember { mutableStateOf("id") }
-    var sortDirection by remember { mutableStateOf("asc") }
+    val sortTorrentsBy by viewModel.sortBy.collectAsState()
+    val sortDirection by viewModel.sortDirection.collectAsState()
 
     var isFABClicked by remember { mutableStateOf(false) }
 
@@ -58,6 +58,9 @@ fun HomeScreen(
             listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
         }
     }
+
+    val filteredTorrents by viewModel.filteredTorrents.collectAsState()
+
 
     Scaffold(
         containerColor = bg_dark,
@@ -82,10 +85,10 @@ fun HomeScreen(
                         SortIconWithDropdown(
                             onSelect = { selection ->
                                 if (sortTorrentsBy == selection) {
-                                    sortDirection = if (sortDirection == "asc") "desc" else "asc"
+                                    viewModel.setSortDirection(if (sortDirection == "asc") "desc" else "asc")
                                 } else {
-                                    sortTorrentsBy = selection
-                                    sortDirection = "asc" // Reset to ascending when changing sort field
+                                    viewModel.setSortBy(selection)
+                                    viewModel.setSortDirection("asc") // Reset to ascending when changing sort field
                                 }
                             }
                         )
@@ -155,15 +158,15 @@ fun HomeScreen(
                         isFABClicked = !isFABClicked
                     },
                     showMagnetDialog = { showMagnetDialog = true },
+                    onAddTorrent = {
+                        viewModel.insertSampleData()
+                    }
                 )
             }
         }
     ) { paddingValues ->
         TorrentsListContent(
-            viewModel.getTorrents(
-                sort = sortTorrentsBy,
-                sortDirection = sortDirection
-            ),
+            filteredTorrents,
             Modifier.padding(paddingValues),
             listState = listState
         )

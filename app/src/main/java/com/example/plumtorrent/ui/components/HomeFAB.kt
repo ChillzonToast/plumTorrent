@@ -32,8 +32,9 @@ fun FAB(
     isScrolled: Boolean,
     isClicked: Boolean = false,
     onFabClick: () -> Unit,
-    showMagnetDialog: () -> Unit
-) {
+    showMagnetDialog: () -> Unit,
+    onAddTorrent: () -> Unit = {  } // Default empty lambda for onAddTorrent
+    ) {
     Column(
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -53,7 +54,7 @@ fun FAB(
             ) {
                 // Torrent file add
                 ExtendedFloatingActionButton(
-                    onClick = { /* Handle add torrent file */ },
+                    onClick = { onAddTorrent() },
                     containerColor = beige,
                     contentColor = bg_dark,
                     expanded = true,
